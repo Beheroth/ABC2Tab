@@ -92,7 +92,7 @@ class Song:
         for chord in self.chords:
             for note in chord.getnotes():
                 print("test")
-                tics.append([(note, pos)])
+                tics.append([(note, int(pos)])
             small_q = chord.smallest() 
             pos += small_q / self.tquantum
         return tics
