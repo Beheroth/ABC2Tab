@@ -97,6 +97,13 @@ class Song:
             pos += small_q / self.tquantum
         return tics
 
+    def ordTicks(self, tics):
+        strings = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
+        for tic in tics:
+            Slist = strings[tic[0]]
+            Slist.append(tic[1])
+        return strings
+
     def gcp(x, y):
         while y != 0:
             (x, y) = (y, x % y)
