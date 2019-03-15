@@ -11,12 +11,14 @@ class Chord:
         return str(self.notes)
 
     def parse_chord(self, s_chord):
-        regex = r'([=_^]?)(([a-zA-Z])([,\'])?)(\d{0,1}\/?\d{1,2})'
+        regex = r'([=_^]?\w[,\']?)(\d{0,1}\/?\d{1,2})?'
         match = re.finditer(regex, s_chord)
         for note in match:
-            self.notes[note.group(3)] = self.parse_time(note.group(5))
+            self.notes[note.group(1)] = self.parse_time(note.group(2))
 
     def parse_time(self, s_time):
+        if s_time is None:
+            s_time = '1'
         regex = r'((\d{0,1})\/(\d{1,2}))|(\d{0,1})'
         match = re.match(regex, s_time)
         numerator = match.group(2)
@@ -32,7 +34,7 @@ class Chord:
         denominator = float(denominator)
 
         time = numerator / denominator
-        print(s_time + " " + str(time))
+        #print(s_time + " " + str(time))
         return time
 
     def smallest(self):
@@ -78,7 +80,7 @@ class Song:
 class Converter:
 
     def __init__(self):
-        self.path = "resources/string_note_pos.json"
+        self.path = "ABC2Tab/resources/string_note_pos.json"
         self.convert_guitar_to_notes()
 
 
@@ -95,34 +97,63 @@ class Converter:
                 submap = data["guitar"][str(guitar_string)]
                 try:
                     coord = (int(guitar_string), submap[note])
-                    print(coord)
+                    #print(coord)
                     if (result.get(note)) is None:
                         result[note] = []
                     result[note].append(coord)
                 except:
                     pass
         self.mapping = result
-        with open('resources/result.json', "w") as write_file:
+        with open('ABC2Tab/resources/result.json', "w") as write_file:
             json.dump(result, write_file)
 
     def convert_song(self, song):
-        counter = float(0)
+        counter = 0
         output = []
-        for chord in song.chords:
+        strings = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
+        chords = song.chords
+        for chord in chords:
             output.append(self.lookup_chord(chord))
+        print("Output: %s" % output)
+        for i in range(len(output)):
+            print("counter: %s" % counter)
+            smallest = self.time_to_ticks(chords[i].smallest(), song)
+            for key in output[i].keys():
+                strings[key].append((output[i][key], counter + smallest))
+            counter += smallest
+        print(strings)
+
+
+    def time_to_ticks(self, time, song):
+        return time//song.tquantum
+
+    def lookup_chord(self, chord):
+        result = {}
+        for note in chord.notes:
+            if note != 'z':
+                positions = self.lookup_note(note)
+                #print("note %s: %s" % (note, positions))
+                i = 0
+                while(result.get(str(positions[i][0])) and i < len(positions)):
+                    i += 1
+                try:
+                    result[str(positions[i][0])] = positions[i][1]
+                except:
+                    print("erreur, il n'y a pas de position pour jouer %s" %(note))
+        return result
 
     def lookup_note(self, note):
-        return self.mapping[note][0]
+        #return positions where you can play that note on the neck
+        ans = None
+        try:
+            ans = self.mapping[note]
+        except:
+            print("couldn't find %s in the mapping" % (note))
+        return ans
 
-    def lookup_chord(selfself, chord):
-        result = []
-        for note in chord.notes:
-            #result.append(lookup_note(self, note))
-            pass
 
 
-
-abc = open("resources/Test.abc", 'r')
+abc = open("ABC2Tab/resources/Test.abc", 'r')
 pattern = re.compile(r'(.): (.+)')
 header = {}
 chords = []
@@ -139,7 +170,7 @@ for line in abc:
             header_context = False
             print("Header endend:" + str(header))
     if not(header_context):
-        #prune lines
+        #split lines
         s_chords = line.split(' ')
         #create chords list
         for s_chord in s_chords:
@@ -148,8 +179,8 @@ abc.close()
 
 song = Song(header, chords)
 song.eval_tquantum()
-("hello" + str(song.chords))
-
+print("Chords: %s" % (song.chords))
+converter.convert_song(song)
 
 """
 def parse_header(pattern, line, header):
