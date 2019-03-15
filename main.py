@@ -116,7 +116,7 @@ class Song:
 class Converter:
 
     def __init__(self):
-        self.path = "ABC2Tab/resources/string_note_pos.json"
+        self.path = "resources/string_note_pos.json"
         self.convert_guitar_to_notes()
 
 
@@ -140,7 +140,7 @@ class Converter:
                 except:
                     pass
         self.mapping = result
-        with open('ABC2Tab/resources/result.json', "w") as write_file:
+        with open('resources/result.json', "w") as write_file:
             json.dump(result, write_file)
 
     def convert_song(self, song):
@@ -189,7 +189,7 @@ class Converter:
 
 
 
-abc = open("ABC2Tab/resources/Test.abc", 'r')
+abc = open("resources/Test.abc", 'r')
 pattern = re.compile(r'(.): (.+)')
 header = {}
 chords = []
