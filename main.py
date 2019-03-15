@@ -152,7 +152,7 @@ class Converter:
             output.append(self.lookup_chord(chord))
         print("Output: %s" % output)
         for i in range(len(output)):
-            print("counter: %s" % counter)
+            #print("counter: %s" % counter)
             smallest = self.time_to_ticks(chords[i].smallest(), song)
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
@@ -161,7 +161,7 @@ class Converter:
 
 
     def time_to_ticks(self, time, song):
-        return time//song.tquantum
+        return int(time//song.tquantum)
 
     def lookup_chord(self, chord):
         result = {}
