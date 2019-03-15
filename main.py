@@ -88,6 +88,7 @@ class Song:
         print("smallest is %s" % smallest)
         self.tquantum = smallest
 
+    """
     def getTicks(self):
         tics = []
         pos = 0
@@ -98,6 +99,7 @@ class Song:
             small_q = chord.smallest() 
             pos += small_q / self.tquantum
         return tics
+    """
 
     def ordTicks(self, tics):
         strings = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
