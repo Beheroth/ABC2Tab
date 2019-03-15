@@ -168,14 +168,15 @@ class Converter:
         for note in chord.notes:
             if note != 'z':
                 positions = self.lookup_note(note)
-                #print("note %s: %s" % (note, positions))
+                print("note %s: %s" % (note, positions))
                 i = 0
-                while(result.get(str(positions[i][0])) and i < len(positions)):
+                while(i < len(positions) and result.get(str(positions[i][0]))):
                     i += 1
                 try:
+                    print(positions[i][0])
                     result[str(positions[i][0])] = positions[i][1]
                 except:
-                    print("erreur, il n'y a pas de position pour jouer %s" %(note))
+                    print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
         return result
 
     def lookup_note(self, note):

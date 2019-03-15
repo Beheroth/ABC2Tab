@@ -3,6 +3,7 @@ from random import randint
 from threading import Thread
 from colorama import init, Fore, Style
 from rprint import print
+
 import RPi.GPIO as GPIO
 import smbus
 
