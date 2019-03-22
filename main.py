@@ -75,7 +75,8 @@ class Song:
         quantums = []
         for chord in self.chords:
             if chord.smallest() in quantums:
-                print("skip")
+                pass
+                #print("skip")
             else:
                 quantums.append(chord.smallest())
         #trouver le PGCD
@@ -150,14 +151,16 @@ class Converter:
         chords = song.chords
         for chord in chords:
             output.append(self.lookup_chord(chord))
-        print("Output: %s" % output)
+        #print("Output: %s" % output)
         for i in range(len(output)):
             #print("counter: %s" % counter)
             smallest = self.time_to_ticks(chords[i].smallest(), song)
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
             counter += smallest
-        print(strings)
+
+        for key, value in strings.items():
+            print("%s: %s" % (key, value))
 
 
     def time_to_ticks(self, time, song):
