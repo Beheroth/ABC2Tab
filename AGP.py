@@ -1,17 +1,12 @@
 from time import sleep
 from random import randint
 from threading import Thread
-from colorama import init, Fore, Style
-from rprint import print
-
 import RPi.GPIO as GPIO
 import smbus
 
 #40Hz - 1kHz
 class Arm(Thread):
     id = 0
-    colors = [Fore.RED, Fore.GREEN, Fore.BLUE,
-              Fore.YELLOW, Fore.MAGENTA, Fore.CYAN]
     wait_freq = 0.005 #~800Hz
     slider_coeff = 6 #distance for one rotation [cm / rot]
     stepmotor_coeff = 200 #impulses for one rotation [imp / rot]
@@ -35,7 +30,6 @@ class Arm(Thread):
         self.IMPULSES_PER_DISTANCE = 1
         self.bus = smbus.SMBus(1)
         self.address = 0x12
-        self.pprint('Initialized arm {}')
 
         #Raspberry parameters
         GPIO.setmode(GPIO.BCM)
@@ -51,11 +45,6 @@ class Arm(Thread):
     def getId():
         Arm.id+=1
         return Arm.id
-
-    def pprint(self, string):
-        print(self.color + string.format(self.id) + '\r',
-              flush=True)
-        #print(string.format(self.id))
     #-------------------------------------------------------#
 
     #Physical based functions-------------------------------#
@@ -65,7 +54,6 @@ class Arm(Thread):
 
     def strum(self):
         #PWM to motor, pins in stepmotor_pins
-        self.pprint("strum string {}")
         if self.tic in self.ticlist:
             print("Nothing")
             self.bus.write_byte(self.address, self.id)
@@ -104,24 +92,20 @@ class Arm(Thread):
         self.ready = True
 
     def run(self):
-        self.pprint('Running arm {}')
         self.initMovement()
     
     def initMovement(self):
         if self.ready:
-            self.pprint(str(self.notes))
             for note in self.notes:
-                self.pprint("from " + str(self.pos) + " to " + str(note[0]) + " until " + str(note[1]))
                 self.moveTo(note[0])
                 while note[1] >= self.tic:
                     sleep(0.1)
         else:
-            self.pprint("No notes available to play!")
+            print("No notes available to play!")
 
     def moveTo(self, destination):
         delta = self.pos - destination
         impulses = abs(delta * self.IMPULSES_PER_DISTANCE)
-        self.pprint('Arm {}: '+'{} impulses'.format(impulses))
         self.moveMotor(delta > 0, impulses)
         self.pos = destination
     #-------------------------------------------------------#
@@ -185,7 +169,6 @@ class Supervisor:
         return (better_tuple, better_list)
 
 if __name__ == "__main__":
-    init()
     supervisor = Supervisor()
 
     arms = []
