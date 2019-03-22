@@ -81,7 +81,7 @@ class Song:
         #trouver le PGCD
         cur_gcp = 1
         for elem in quantums:
-            cur_gcp = Song.gcp(cur_gcp, elem)
+            cur_gcp = self.gcp(cur_gcp, elem)
 
         #smallest = min(quantums)
         smallest = cur_gcp
@@ -108,7 +108,7 @@ class Song:
             Slist.append(tic[1])
         return strings
 
-    def gcp(x, y):
+    def gcp(self, x, y):
         while y != 0:
             (x, y) = (y, x % y)
         return x
