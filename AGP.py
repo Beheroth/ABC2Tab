@@ -23,7 +23,6 @@ class Arm(Thread):
     def __init__(self):
         self.id = Arm.getId()
         super().__init__(name = self.id)
-        self.color = Arm.colors[self.id - 1] 
         self.pos = 0
         self.ready = False
         self.tic = 0
@@ -33,11 +32,11 @@ class Arm(Thread):
 
         #Raspberry parameters
         GPIO.setmode(GPIO.BCM)
-        self.dir_pin = pins[self.id - 1][0]
-        self.motor_pin = pins[self.id - 1][1]
+        self.dir_pin = self.pins[self.id - 1][0]
+        self.motor_pin = self.pins[self.id - 1][1]
         self.sensor_pin = 1
 
-        GPIO.setup(self.dirPin, GPIO.OUT)
+        GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.motor_pin, GPIO.OUT)
         GPIO.setup(self.sensor_pin, GPIO.IN)
 
