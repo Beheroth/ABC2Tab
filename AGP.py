@@ -7,13 +7,13 @@ import smbus
 #40Hz - 1kHz
 class Arm(Thread):
     id = 0
-    wait_freq = 0.005 #~800Hz
+    wait_freq = 0.0008 #~800Hz
     slider_coeff = 6 #distance for one rotation [cm / rot]
     stepmotor_coeff = 200 #impulses for one rotation [imp / rot]
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
 
-    pins = [[13, 11], [1, 1], [1, 1],
+    pins = [[21, 20, 16], [1, 1], [1, 1],
             [1, 1], [1, 1], [1, 1]]
 
     def __init__(self):
@@ -29,10 +29,12 @@ class Arm(Thread):
         GPIO.setmode(GPIO.BCM)
         self.dir_pin = self.pins[self.id - 1][0]
         self.motor_pin = self.pins[self.id - 1][1]
+        self.sleep_pin = self.pins[self.id - 1][2]
         self.sensor_pin = 1
 
         GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.motor_pin, GPIO.OUT)
+        GPIO.setup(self.sleep_pin, GPIO.OUT)
         GPIO.setup(self.sensor_pin, GPIO.IN)
 
     #Utility, for testing use!------------------------------#
@@ -56,18 +58,21 @@ class Arm(Thread):
         self.tic += 1
 
     def moveMotor(self, forward, impulses):
+        #import pdb; pdb.set_trace()
         if forward:
             GPIO.output(self.dir_pin, GPIO.HIGH)
         else:
             GPIO.output(self.dir_pin, GPIO.LOW)
 
         imp = 0
+        GPIO.output(self.sleep_pin, GPIO.HIGH)
         while imp < impulses:
             GPIO.output(self.motor_pin, GPIO.HIGH)
             sleep(Arm.wait_freq) 
             GPIO.output(self.motor_pin, GPIO.LOW)
             sleep(Arm.wait_freq)
             imp+=1
+        GPIO.output(self.sleep_pin, GPIO.LOW)
 
     def synchArm(self):
         self.moveTo(3)
@@ -87,7 +92,7 @@ class Arm(Thread):
 
     def run(self):
         self.initMovement()
-    
+   
     def initMovement(self):
         if self.ready:
             for note in self.notes:
@@ -98,6 +103,7 @@ class Arm(Thread):
             print("No notes available to play!")
 
     def moveTo(self, destination):
+        print("moving from {} to {}".format(self.pos, destination))
         delta = Arm.distances[destination] - Arm.distances[self.pos]
         impulses = int( (abs(delta) / Arm.slider_coeff) * Arm.stepmotor_coeff )
         self.moveMotor(delta > 0, impulses)
@@ -107,7 +113,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 0.25 
+        self.tic_time = 1
 
     def addArms(self, arms):
         self.arms += arms
@@ -136,7 +142,7 @@ class Supervisor:
     def genRan(self):
         tuples = []
         for tupl in range(12):
-            tuples += [(randint(-1, 3), tupl)]
+            tuples += [(randint(0, 11), tupl)]
 
         better_tuple = []
         sorting = True
