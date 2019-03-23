@@ -10,23 +10,18 @@ class Arm(Thread):
     wait_freq = 0.005 #~800Hz
     slider_coeff = 6 #distance for one rotation [cm / rot]
     stepmotor_coeff = 200 #impulses for one rotation [imp / rot]
-    stepmotor_pins  = [11, 13, 15, 19, 21, 23]
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
 
     pins = [[1, 1], [1, 1], [1, 1],
             [1, 1], [1, 1], [1, 1]]
 
-    impulses = {}
-    for key in distances:
-        impulses[key] = (distances[key] / slider_coeff) * stepmotor_coeff
     def __init__(self):
         self.id = Arm.getId()
         super().__init__(name = self.id)
         self.pos = 0
         self.ready = False
         self.tic = 0
-        self.IMPULSES_PER_DISTANCE = 1
         self.bus = smbus.SMBus(1)
         self.address = 0x12
 
@@ -103,8 +98,8 @@ class Arm(Thread):
             print("No notes available to play!")
 
     def moveTo(self, destination):
-        delta = self.pos - destination
-        impulses = abs(delta * self.IMPULSES_PER_DISTANCE)
+        delta = Arm.distances[destination] - Arm.distances[self.pos]
+        impulses = int( (abs(delta) / Arm.slider_coeff) * Arm.stepmotor_coeff )
         self.moveMotor(delta > 0, impulses)
         self.pos = destination
     #-------------------------------------------------------#
