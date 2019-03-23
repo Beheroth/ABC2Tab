@@ -13,7 +13,7 @@ class Arm(Thread):
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
 
-    pins = [[1, 1], [1, 1], [1, 1],
+    pins = [[13, 11], [1, 1], [1, 1],
             [1, 1], [1, 1], [1, 1]]
 
     def __init__(self):
@@ -107,7 +107,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 0.5 
+        self.tic_time = 0.25 
 
     def addArms(self, arms):
         self.arms += arms
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     supervisor = Supervisor()
 
     arms = []
-    for num in range(2):
+    for num in range(1):
         current_arm = Arm()
         current_arm.setNotes(*supervisor.genRan())
         arms += [current_arm]
