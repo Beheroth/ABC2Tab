@@ -172,11 +172,12 @@ class Converter:
                 positions = self.lookup_note(note)  #list of tuples
                 print("note %s: %s" % (note, positions))
                 i = 0
-                while(i < len(positions) and result.get(str(positions[i][0]))):
+                while(i < len(positions) and (str(positions[i][0])) in result):
                     i += 1
                 try:
+                    print("i = %s " % i)
                     result[str(positions[i][0])] = positions[i][1]
-                    print("result: %s" % result)
+                    print("result: %s \n" % result)
 
                 except:
                     print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
