@@ -118,7 +118,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 0.3
+        self.tic_time = 0.3 
 
     def addArms(self, arms):
         self.arms += arms
