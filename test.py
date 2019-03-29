@@ -8,3 +8,6 @@ def inS():
 
 def q():
 	exit()
+
+def freq(f):
+	Arm.wait_freq = f

@@ -13,8 +13,8 @@ class Arm(Thread):
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
 
-    pins = [[21, 20, 16], [1, 1], [1, 1],
-            [1, 1], [1, 1], [1, 1]]
+    pins = [[27, 4, 17, 8], [9, 22, 10, 7], [6, 11, 5, 12],
+            [26, 13, 19, 20], [15, 14, 18, 16], [25, 23, 24, 21]]
 
     def __init__(self):
         self.id = Arm.getId()
@@ -30,7 +30,7 @@ class Arm(Thread):
         self.dir_pin = self.pins[self.id - 1][0]
         self.motor_pin = self.pins[self.id - 1][1]
         self.sleep_pin = self.pins[self.id - 1][2]
-        self.sensor_pin = 1
+        self.sensor_pin = self.pins[self.id -1][3]
 
         GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.motor_pin, GPIO.OUT)
@@ -53,6 +53,11 @@ class Arm(Thread):
         if self.tic in self.ticlist:
             print("Nothing")
             self.bus.write_byte(self.address, self.id)
+
+    def testStrum(self):
+        while True:
+            self.bus.write_byte(self.address, self.id)
+            sleep(Arm.wait_freq)
 
     def increaseTic(self):
         self.tic += 1
@@ -113,7 +118,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 1
+        self.tic_time = 0.3
 
     def addArms(self, arms):
         self.arms += arms
