@@ -110,7 +110,9 @@ class Arm(Thread):
     def moveTo(self, destination):
         print("moving from {} to {}".format(self.pos, destination))
         delta = Arm.distances[destination] - Arm.distances[self.pos]
+        print("Distance: ", delta)
         impulses = int( (abs(delta) / Arm.slider_coeff) * Arm.stepmotor_coeff )
+        print("Impulses: ", impulses)
         self.moveMotor(delta > 0, impulses)
         self.pos = destination
     #-------------------------------------------------------#
@@ -118,7 +120,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 0.3 
+        self.tic_time = 2 
 
     def addArms(self, arms):
         self.arms += arms
@@ -179,7 +181,8 @@ if __name__ == "__main__":
     arms = []
     for num in range(1):
         current_arm = Arm()
-        current_arm.setNotes(*supervisor.genRan())
+        note= ([(1, 1), (2, 2), (3, 3), (4, 4), (1, 5), (3, 6), (2, 7)], [1, 2,                3, 4, 5, 6, 7, 8, 9])
+        current_arm.setNotes(*note)
         arms += [current_arm]
 
     supervisor.addArms(arms)
