@@ -13,8 +13,8 @@ class Arm(Thread):
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
 
-    pins = [[21, 20, 16], [1, 1], [1, 1],
-            [1, 1], [1, 1], [1, 1]]
+    pins = [[21, 20, 16], [1, 1, 1], [1, 1, 1],
+            [1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
     def __init__(self):
         self.id = Arm.getId()
@@ -41,6 +41,11 @@ class Arm(Thread):
     def getId():
         Arm.id+=1
         return Arm.id
+
+    def changeId(self, ident):
+        self.id = ident
+        self.name = "test"
+        Arm.id = 0
     #-------------------------------------------------------#
 
     #Physical based functions-------------------------------#
