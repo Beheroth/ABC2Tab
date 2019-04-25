@@ -1,49 +1,40 @@
 from time import sleep
 from random import randint
 from threading import Thread
-from colorama import init, Fore, Style
-from rprint import print
 import RPi.GPIO as GPIO
 import smbus
 
 #40Hz - 1kHz
 class Arm(Thread):
     id = 0
-    colors = [Fore.RED, Fore.GREEN, Fore.BLUE,
-              Fore.YELLOW, Fore.MAGENTA, Fore.CYAN]
-    wait_freq = 0.005 #~800Hz
+    wait_freq = 0.0008 #~800Hz
     slider_coeff = 6 #distance for one rotation [cm / rot]
     stepmotor_coeff = 200 #impulses for one rotation [imp / rot]
-    stepmotor_pins  = [11, 13, 15, 19, 21, 23]
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
                  6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
+    
+    pins = [[27, 4, 17, 8], [9, 22, 10, 7], [6, 11, 5, 12],
+            [26, 13, 19, 20], [15, 14, 18, 16], [25, 23, 24, 21]]
 
-    pins = [[1, 1], [1, 1], [1, 1],
-            [1, 1], [1, 1], [1, 1]]
-
-    impulses = {}
-    for key in distances:
-        impulses[key] = (distances[key] / slider_coeff) * stepmotor_coeff
     def __init__(self):
         self.id = Arm.getId()
         super().__init__(name = self.id)
-        self.color = Arm.colors[self.id - 1] 
         self.pos = 0
         self.ready = False
         self.tic = 0
-        self.IMPULSES_PER_DISTANCE = 1
         self.bus = smbus.SMBus(1)
         self.address = 0x12
-        self.pprint('Initialized arm {}')
 
         #Raspberry parameters
         GPIO.setmode(GPIO.BCM)
-        self.dir_pin = pins[self.id - 1][0]
-        self.motor_pin = pins[self.id - 1][1]
-        self.sensor_pin = 1
+        self.dir_pin = self.pins[self.id - 1][0]
+        self.motor_pin = self.pins[self.id - 1][1]
+        self.sleep_pin = self.pins[self.id - 1][2]
+        self.sensor_pin = self.pins[self.id -1][3]
 
-        GPIO.setup(self.dirPin, GPIO.OUT)
+        GPIO.setup(self.dir_pin, GPIO.OUT)
         GPIO.setup(self.motor_pin, GPIO.OUT)
+        GPIO.setup(self.sleep_pin, GPIO.OUT)
         GPIO.setup(self.sensor_pin, GPIO.IN)
 
     #Utility, for testing use!------------------------------#
@@ -51,10 +42,10 @@ class Arm(Thread):
         Arm.id+=1
         return Arm.id
 
-    def pprint(self, string):
-        print(self.color + string.format(self.id) + '\r',
-              flush=True)
-        #print(string.format(self.id))
+    def changeId(self, ident):
+        self.id = ident
+        self.name = "test"
+        Arm.id = 0
     #-------------------------------------------------------#
 
     #Physical based functions-------------------------------#
@@ -64,27 +55,34 @@ class Arm(Thread):
 
     def strum(self):
         #PWM to motor, pins in stepmotor_pins
-        self.pprint("strum string {}")
         if self.tic in self.ticlist:
             print("Nothing")
             self.bus.write_byte(self.address, self.id)
+
+    def testStrum(self):
+        while True:
+            self.bus.write_byte(self.address, self.id)
+            sleep(Arm.wait_freq)
 
     def increaseTic(self):
         self.tic += 1
 
     def moveMotor(self, forward, impulses):
+        #import pdb; pdb.set_trace()
         if forward:
             GPIO.output(self.dir_pin, GPIO.HIGH)
         else:
             GPIO.output(self.dir_pin, GPIO.LOW)
 
         imp = 0
+        GPIO.output(self.sleep_pin, GPIO.HIGH)
         while imp < impulses:
             GPIO.output(self.motor_pin, GPIO.HIGH)
             sleep(Arm.wait_freq) 
             GPIO.output(self.motor_pin, GPIO.LOW)
             sleep(Arm.wait_freq)
             imp+=1
+        GPIO.output(self.sleep_pin, GPIO.LOW)
 
     def synchArm(self):
         self.moveTo(3)
@@ -103,24 +101,23 @@ class Arm(Thread):
         self.ready = True
 
     def run(self):
-        self.pprint('Running arm {}')
         self.initMovement()
-    
+   
     def initMovement(self):
         if self.ready:
-            self.pprint(str(self.notes))
             for note in self.notes:
-                self.pprint("from " + str(self.pos) + " to " + str(note[0]) + " until " + str(note[1]))
                 self.moveTo(note[0])
                 while note[1] >= self.tic:
                     sleep(0.1)
         else:
-            self.pprint("No notes available to play!")
+            print("No notes available to play!")
 
     def moveTo(self, destination):
-        delta = self.pos - destination
-        impulses = abs(delta * self.IMPULSES_PER_DISTANCE)
-        self.pprint('Arm {}: '+'{} impulses'.format(impulses))
+        print("moving from {} to {}".format(self.pos, destination))
+        delta = Arm.distances[destination] - Arm.distances[self.pos]
+        print("Distance: ", delta)
+        impulses = int( (abs(delta) / Arm.slider_coeff) * Arm.stepmotor_coeff )
+        print("Impulses: ", impulses)
         self.moveMotor(delta > 0, impulses)
         self.pos = destination
     #-------------------------------------------------------#
@@ -128,7 +125,7 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 1
+        self.tic_time = 2 
 
     def addArms(self, arms):
         self.arms += arms
@@ -157,7 +154,7 @@ class Supervisor:
     def genRan(self):
         tuples = []
         for tupl in range(12):
-            tuples += [(randint(-1, 3), tupl)]
+            tuples += [(randint(0, 11), tupl)]
 
         better_tuple = []
         sorting = True
@@ -184,13 +181,13 @@ class Supervisor:
         return (better_tuple, better_list)
 
 if __name__ == "__main__":
-    init()
     supervisor = Supervisor()
 
     arms = []
-    for num in range(2):
+    for num in range(1):
         current_arm = Arm()
-        current_arm.setNotes(*supervisor.genRan())
+        note= ([(1, 1), (2, 2), (3, 3), (4, 4), (1, 5), (3, 6), (2, 7)], [1, 2,                3, 4, 5, 6, 7, 8, 9])
+        current_arm.setNotes(*note)
         arms += [current_arm]
 
     supervisor.addArms(arms)
