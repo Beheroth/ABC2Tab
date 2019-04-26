@@ -3,3 +3,4 @@
 main.ino
 __pycache__
 .idea/workspace.xml
+*.pyc
