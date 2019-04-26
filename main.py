@@ -75,13 +75,14 @@ class Song:
         quantums = []
         for chord in self.chords:
             if chord.smallest() in quantums:
-                o = 0
+                pass
+                #print("skip")
             else:
                 quantums.append(chord.smallest())
         #trouver le PGCD
         cur_gcp = 1
         for elem in quantums:
-            cur_gcp = Song.gcp(cur_gcp, elem)
+            cur_gcp = self.gcp(cur_gcp, elem)
 
         #smallest = min(quantums)
         smallest = cur_gcp
@@ -95,7 +96,7 @@ class Song:
         for chord in self.chords:
             for note in chord.getnotes():
                 tics.append((note, int(pos)))
-            small_q = chord.smallest() 
+            small_q = chord.smallest()
             pos += small_q / self.tquantum
         return tics
     """
@@ -107,7 +108,7 @@ class Song:
             Slist.append(tic[1])
         return strings
 
-    def gcp(x, y):
+    def gcp(self, x, y):
         while y != 0:
             (x, y) = (y, x % y)
         return x
@@ -149,15 +150,16 @@ class Converter:
         chords = song.chords
         for chord in chords:
             output.append(self.lookup_chord(chord))
-        print("Output: %s" % output)
+        #print("Output: %s" % output)
         for i in range(len(output)):
             #print("counter: %s" % counter)
             smallest = self.time_to_ticks(chords[i].smallest(), song)
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
             counter += smallest
-        print(strings)
-        return strings
+            
+        for key, value in strings.items():
+            print("%s: %s" % (key, value))
 
     def isolate_tics(self, strings):
         for elem in strings:
@@ -175,15 +177,19 @@ class Converter:
         result = {}
         for note in chord.notes:
             if note != 'z':
-                positions = self.lookup_note(note)
-                #print("note %s: %s" % (note, positions))
+                positions = self.lookup_note(note)  #list of tuples
+                print("note %s: %s" % (note, positions))
                 i = 0
-                while(result.get(str(positions[i][0])) and i < len(positions)):
+                while(i < len(positions) and (str(positions[i][0])) in result):
                     i += 1
                 try:
+                    print("i = %s " % i)
                     result[str(positions[i][0])] = positions[i][1]
+                    print("result: %s \n" % result)
+
                 except:
-                    print("erreur, il n'y a pas de position pour jouer %s" %(note))
+                    print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
+        print("")
         return result
 
     def lookup_note(self, note):
@@ -193,7 +199,7 @@ class Converter:
             ans = self.mapping[note]
         except:
             print("couldn't find %s in the mapping" % (note))
-        return ans
+        return ans  #list of tuples
 
 
 
