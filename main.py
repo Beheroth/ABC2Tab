@@ -73,7 +73,13 @@ class Song:
 
     def eval_tquantum(self):
         quantums = []
+        i= 1
         for chord in self.chords:
+            try:
+                test = chord.smallest()
+                i+=1
+            except:
+                import pdb; pdb.set_trace()
             if chord.smallest() in quantums:
                 pass
                 #print("skip")
@@ -115,9 +121,10 @@ class Song:
 
 class Converter:
 
-    def __init__(self):
+    def __init__(self, verbose= False):
         self.path = "resources/string_note_pos.json"
         self.convert_guitar_to_notes()
+        self.verbose = verbose
 
 
     def convert_guitar_to_notes(self):
@@ -157,18 +164,49 @@ class Converter:
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
             counter += smallest
+        
+        if self.verbose:
+            for key, value in strings.items():
+                print("%s: %s" % (key, value))
             
-        for key, value in strings.items():
-            print("%s: %s" % (key, value))
+        return strings
+    
+    def path_convert(self, path):
+        abc = open(path, 'r')
+        pattern = re.compile(r'(.): (.+)')
+        header = {}
+        chords = []
+
+        header_context = True
+        for line in abc:
+            if header_context:
+                try:
+                    match = pattern.match(line)
+                    #macth headers
+                    header[match.group(1)] = match.group(2)
+                except:
+                    header_context = False
+            if not(header_context):
+                #split lines
+                s_chords = line.split(' ')
+                #create chords list
+                for s_chord in s_chords:
+                    chords.append(Chord(s_chord))
+        abc.close()
+
+        song = Song(header, chords)
+        song.eval_tquantum()
+        return self.convert_song(song)
 
     def isolate_tics(self, strings):
+        tics = {}
         for elem in strings:
             L = strings[elem]
             newL = []
             for note in L:
                 newL += [note[1]]
-            strings[elem] = newL
-        return strings
+            tics[elem] = newL
+        return tics
 
     def time_to_ticks(self, time, song):
         return int(time//song.tquantum)
@@ -178,18 +216,23 @@ class Converter:
         for note in chord.notes:
             if note != 'z':
                 positions = self.lookup_note(note)  #list of tuples
-                print("note %s: %s" % (note, positions))
+                if self.verbose:
+                    print("note %s: %s" % (note, positions))
                 i = 0
                 while(i < len(positions) and (str(positions[i][0])) in result):
                     i += 1
                 try:
-                    print("i = %s " % i)
+                    if self.verbose:
+                        print("i = %s " % i)
                     result[str(positions[i][0])] = positions[i][1]
-                    print("result: %s \n" % result)
+                    if self.verbose:
+                        print("result: %s \n" % result)
 
                 except:
-                    print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
-        print("")
+                    if self.verbose:
+                        print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
+        if self.verbose:                
+            print("")
         return result
 
     def lookup_note(self, note):
@@ -198,61 +241,63 @@ class Converter:
         try:
             ans = self.mapping[note]
         except:
-            print("couldn't find %s in the mapping" % (note))
+            if self.verbose:
+                print("couldn't find %s in the mapping" % (note))
         return ans  #list of tuples
 
 
+if __name__ == "__main__":
+    #abc = open("resources/Test.abc", 'r')
+    abc = open("resources/Stayin'Alive.abc", 'r')
+    pattern = re.compile(r'(.): (.+)')
+    header = {}
+    chords = []
+    converter = Converter(True)
 
-abc = open("resources/Test.abc", 'r')
-pattern = re.compile(r'(.): (.+)')
-header = {}
-chords = []
-converter = Converter()
+    header_context = True
+    for line in abc:
+        if header_context:
+            try:
+                match = pattern.match(line)
+                #macth headers
+                header[match.group(1)] = match.group(2)
+            except:
+                header_context = False
+                print("Header endend:" + str(header))
+        if not(header_context):
+            #split lines
+            s_chords = line.split(' ')
+            #create chords list
+            for s_chord in s_chords:
+                chords.append(Chord(s_chord))
+    abc.close()
 
-header_context = True
-for line in abc:
-    if header_context:
-        try:
-            match = pattern.match(line)
-            #macth headers
-            header[match.group(1)] = match.group(2)
-        except:
-            header_context = False
-            print("Header endend:" + str(header))
-    if not(header_context):
-        #split lines
-        s_chords = line.split(' ')
-        #create chords list
-        for s_chord in s_chords:
-            chords.append(Chord(s_chord))
-abc.close()
+    song = Song(header, chords)
+    song.eval_tquantum()
+    print("Chords: %s" % (song.chords))
+    print(converter.convert_song(song))
 
-song = Song(header, chords)
-song.eval_tquantum()
-print("Chords: %s" % (song.chords))
-converter.convert_song(song)
-
-"""
-def parse_header(pattern, line, header):
-    answer = False
-    match = pattern.match(line)
-    if match != None:
-        values = match.groups()
-        header[values[0]] = values[1]
-        answer = True
-    return answer
-
-def parse_notes(pattern, line):
-    notes = line.split(' ')
-    for note in notes:
-        match = pattern.match(note)
+    """
+    def parse_header(pattern, line, header):
+        answer = False
+        match = pattern.match(line)
         if match != None:
-            pass
+            values = match.groups()
+            header[values[0]] = values[1]
+            answer = True
+        return answer
 
-    match = pattern.match(line)
-    if match != None:
-        values = match.groups()
-        header[values[0]] = values[1]
-    return header
+    def parse_notes(pattern, line):
+        notes = line.split(' ')
+        for note in notes:
+            match = pattern.match(note)
+            if match != None:
+                pass
 
-"""
+        match = pattern.match(line)
+        if match != None:
+            values = match.groups()
+            header[values[0]] = values[1]
+        return header
+
+    """

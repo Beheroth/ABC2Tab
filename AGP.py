@@ -190,9 +190,10 @@ if __name__ == "__main__":
     supervisor = Supervisor()
 
     arms = []
-    for num in range(1):
+    for num in range(3):
         current_arm = Arm()
-        note= ([(1, 1), (2, 2), (3, 3), (4, 4), (1, 5), (3, 6), (2, 7)], [1, 2,                3, 4, 5, 6, 7, 8, 9])
+        #note= ([(1, 1), (2, 2), (3, 3), (4, 4), (1, 5), (3, 6), (2, 7)], [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        note = supervisor.genRan()
         current_arm.setNotes(*note)
         arms += [current_arm]
 
