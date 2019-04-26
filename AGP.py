@@ -22,11 +22,16 @@ class Arm(Thread):
         self.pos = 0
         self.ready = False
         self.tic = 0
+        self.ticlist = []
         self.bus = smbus.SMBus(1)
         self.address = 0x12
-
-        #Raspberry parameters
+        
         GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        self.initGPIO()
+
+    def initGPIO(self):
+        #Raspberry parameters
         self.dir_pin = self.pins[self.id - 1][0]
         self.motor_pin = self.pins[self.id - 1][1]
         self.sleep_pin = self.pins[self.id - 1][2]
@@ -42,10 +47,12 @@ class Arm(Thread):
         Arm.id+=1
         return Arm.id
 
-    def changeId(self, ident):
+    def changeID(self, ident):
         self.id = ident
         self.name = "test"
         Arm.id = 0
+        self.pos= 0
+        self.initGPIO()
     #-------------------------------------------------------#
 
     #Physical based functions-------------------------------#
@@ -53,10 +60,9 @@ class Arm(Thread):
         self.strum()
         self.increaseTic()
 
-    def strum(self):
+    def strum(self, manual = False):
         #PWM to motor, pins in stepmotor_pins
-        if self.tic in self.ticlist:
-            print("Nothing")
+        if self.tic in self.ticlist or manual:
             self.bus.write_byte(self.address, self.id)
 
     def testStrum(self):
