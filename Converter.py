@@ -39,6 +39,8 @@ class Converter:
         counter = 0
         output = []
         strings = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
+        self.left = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
+        self.right = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
         chords = self.song.chords
         for chord in chords:
             output.append(self.lookup_chord(chord))
@@ -50,12 +52,21 @@ class Converter:
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
             counter += smallest
-
         for key, value in strings.items():
-            print("%s: %s" % (key, value))
-            print("Left: %s" % self.simplify_left(value))
-            print("Right: %s" % self.simplify_right(value))
+            self.left[key] = self.simplify_left(value)
+            self.right[key] = self.simplify_right(value)
 
+            #print("%s: %s" % (key, value))
+            #print("Left: %s" % self.simplify_left(value))
+            #print("Right: %s" % self.simplify_right(value))
+        #print("Left: %s" % self.left)
+        #print("Right: %s" % self.right)
+
+    def get_left(self, string):
+        return self.left[string]
+
+    def get_right(self, string):
+        return self.right[string]
 
     def read_file(self):
         filepath = self.filepath
