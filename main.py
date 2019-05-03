@@ -167,22 +167,56 @@ class Converter:
 
     def lookup_chord(self, chord):
         result = {}
+        print("--START: LookUp Chord: chord: %s:" % (chord.notes))
+        self.solve_collision(chord)
         for note in chord.notes:
             if note != 'z':
-                positions = self.lookup_note(note)  #list of tuples
+                positions = self.lookup_note(note)          #list of tuples
                 print("note %s: %s" % (note, positions))
                 i = 0
                 while(i < len(positions) and (str(positions[i][0])) in result):
                     i += 1
                 try:
-                    print("i = %s " % i)
-                    result[str(positions[i][0])] = positions[i][1]
-                    print("result: %s \n" % result)
-
+                    result[str(positions[i][0])] = positions[i][1] #{'1': 3}
                 except:
                     print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
-        print("")
+        print("--END: LookUp Chord: result: %s \n" % (result))
         return result
+
+    def solve_collision(self, chord):
+        print("--START: Solve Collision")
+        result = {}
+        for note in chord.notes:
+            if note != 'z':
+                positions = self.lookup_note(note)
+                for position in positions:
+                    #print("Note: %s Position: %s" % (note,position[0]))
+                    if(str(position[0]) not in result):
+                        result[str(position[0])] =[]
+                    result[str(position[0])].append(note)
+        print("Result: %s" % result)
+        print("unique: string %s, note: %s" % self.find_unique(result))
+        print("Result: %s" % result)
+
+        print("--END: Solve Collision")
+
+    def find_unique(self, positions_set):
+        key = ''
+        note = ''
+        for key in positions_set.keys():
+            if len(positions_set[key]) == 1:
+                note = positions_set[key][0]    #recupere la note
+                positions_set.pop(key)          #supprime la corde des positions possibles
+                for otherkey in positions_set.keys():
+                    if note in positions_set[otherkey]:
+                        positions_set[otherkey].remove(note)    #supprime la note des autres cordes
+                break
+        return key, note
+
+    def resolve_sudoku(self, positions_set):
+        result = {}
+        while()
+
 
     def lookup_note(self, note):
         #return positions where you can play that note on the neck
@@ -221,7 +255,7 @@ abc.close()
 
 song = Song(header, chords)
 song.eval_tquantum()
-print("Chords: %s" % (song.chords))
+#print("Chords: %s" % (song.chords))
 converter.convert_song(song)
 
 """
