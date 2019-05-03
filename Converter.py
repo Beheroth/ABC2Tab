@@ -1,10 +1,14 @@
 import json
+import re
+from Chord import Chord
+from Song import Song
 
 class Converter:
-    def __init__(self):
+    def __init__(self, filepath):
         self.path = "resources/string_note_pos.json"
         self.convert_guitar_to_notes()
-
+        self.filepath = filepath
+        self.song = None
 
     def convert_guitar_to_notes(self):
         with open(self.path, "r") as read_file:
@@ -29,28 +33,60 @@ class Converter:
         with open('resources/result.json', "w") as write_file:
             json.dump(result, write_file)
 
-    def convert_song(self, song):
+    def convert_song(self):
+        self.read_file()
+        song = self.song
         counter = 0
         output = []
         strings = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
-        chords = song.chords
+        chords = self.song.chords
         for chord in chords:
             output.append(self.lookup_chord(chord))
-        print("Output: %s" % output)
+        #print("Output: %s" % output)
         for i in range(len(output)):
             #print("counter: %s" % counter)
-            smallest = self.time_to_ticks(chords[i].smallest(), song)
+
+            smallest = self.time_to_ticks(chords[i].smallest())
             for key in output[i].keys():
                 strings[key].append((output[i][key], counter + smallest))
             counter += smallest
 
         for key, value in strings.items():
             print("%s: %s" % (key, value))
-            pass
+            print("Left: %s" % self.simplify_left(value))
+            print("Right: %s" % self.simplify_right(value))
 
 
-    def time_to_ticks(self, time, song):
-        return int(time//song.tquantum)
+    def read_file(self):
+        filepath = self.filepath
+        abc = open(filepath, 'r')
+        pattern = re.compile(r'(.): (.+)')
+        header = {}
+        chords = []
+
+        header_context = True
+        for line in abc:
+            if header_context:
+                try:
+                    match = pattern.match(line)
+                    # macth headers
+                    header[match.group(1)] = match.group(2)
+                except:
+                    header_context = False
+                    print("Header endend:" + str(header))
+            if not (header_context):
+                # split lines
+                s_chords = line.split(' ')
+                # create chords list
+                for s_chord in s_chords:
+                    if(s_chord != ''):
+                        chords.append(Chord(s_chord))
+        abc.close()
+        self.song = Song(header, chords)
+        self.song.eval_tquantum()
+
+    def time_to_ticks(self, time):
+        return int(time//self.song.tquantum)
 
     def lookup_chord(self, chord):
         result = {}
@@ -70,6 +106,24 @@ class Converter:
         #print("--END: LookUp Chord: result: %s \n" % (result))
         return result
 
+    def simplify_left(self, pos):
+        ans = pos.copy()
+        i = 0
+        while (i < len(ans) - 1):
+            if (ans[i][0] == ans[i+1][0]):
+                ans.pop(i)
+            else:
+                i += 1
+        return ans
+
+    def simplify_right(self, pos):
+        ans = []
+        i = 0
+        while(i < len(pos)):
+            ans.append(pos[i][1])
+            i += 1
+        return ans
+
     def solve_collision(self, chord):
         #print("--START: Solve Collision")
         result = {}
@@ -88,6 +142,7 @@ class Converter:
         #print("--END: Solve Collision")
 
     def find_unique(self, positions_set):
+        #TODO
         key = ''
         note = ''
         for key in positions_set.keys():
@@ -101,9 +156,11 @@ class Converter:
         return key, note
 
     def resolve_sudoku(self, positions_set):
+        #TODO
         result = {}
 
     def lookup_note(self, note):
+        #TODO
         #return positions where you can play that note on the neck
         ans = None
         try:

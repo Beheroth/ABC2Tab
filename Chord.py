@@ -40,7 +40,11 @@ class Chord:
 
     def smallest(self):
         #find smallest unit of time in the chord
-        smallest = min(list(self.notes.values()))
+        try:
+            smallest = min(list(self.notes.values()))
+        except:
+            print(self.notes.values())
+            print(self.notes)
         return smallest
 
 
