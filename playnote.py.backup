@@ -1,0 +1,5 @@
+with open ("/home/jordan/AGP/note.txt") as note:
+	print(note.readlines())
+
+with open ("/home/jordan/AGP/slider.txt") as slider:
+	print(slider.readlines())
