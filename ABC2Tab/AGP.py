@@ -141,6 +141,7 @@ class Supervisor:
             arm.start()
         self.tic()
 
+    #In charge of keeping track of tics for all arms
     def tic(self):
         tic = 0
         print("tic " + str(tic))
@@ -152,11 +153,13 @@ class Supervisor:
             tic += 1
             sleep(self.tic_time)
 
+    #Synchs all arms
     def synch(self):
         for arm in self.arms:
             arm.synchArm()
             arm.moveTo(1)
 
+    #Generate a random array of notes/tics and tics, see usage below
     def genRan(self):
         tuples = []
         for tupl in range(12):
