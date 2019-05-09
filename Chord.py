@@ -43,6 +43,7 @@ class Chord:
         try:
             smallest = min(list(self.notes.values()))
         except:
+            smallest = 99
             print(self.notes.values())
             print(self.notes)
         return smallest

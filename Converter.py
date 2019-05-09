@@ -30,7 +30,7 @@ class Converter:
                 except:
                     pass
         self.mapping = result
-        with open('/home/pi/AGP/ABC2Tab/resources/string_note_pos.json', "w") as write_file:
+        with open('/home/pi/AGP/ABC2Tab/resources/guitar_config.json', "w") as write_file:
             json.dump(result, write_file)
 
     def convert_song(self):
