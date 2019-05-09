@@ -1,11 +1,24 @@
 import json
 import re
-from .Chord import Chord
-from .Song import Song
+from Chord import Chord
+from Song import Song
 
 class Converter:
+
+    '''
+        The Vehicle object contains lots of vehicles
+
+        path: Path to the json file describing what notes can be played on the guitar.
+        filepath: Path to the .abc file you want to convert for the robot.
+        song: Song object created from the .abc file.
+        left: output list designed for the left hand of the robot.
+        right: output list designed for the right hand of the robot.
+        mapping: Dictionary containing each playable note on the guitar. The note is the key, the positions are the value.
+    '''
+
     def __init__(self, filepath):
-        self.path = "/home/pi/AGP/ABC2Tab/resources/string_note_pos.json"
+        #self.path = "/home/pi/AGP/ABC2Tab/resources/string_note_pos.json"
+        self.path = "resources/string_note_pos.json"
         self.convert_guitar_to_notes()
         self.filepath = filepath
         self.song = None
@@ -30,8 +43,7 @@ class Converter:
                 except:
                     pass
         self.mapping = result
-        with open('/home/pi/AGP/ABC2Tab/resources/guitar_config.json', "w") as write_file:
-            json.dump(result, write_file)
+
 
     def convert_song(self):
         self.read_file()
