@@ -177,5 +177,6 @@ class Converter:
         try:
             ans = self.mapping[note]
         except:
+            ans = []
             print("couldn't find %s in the mapping" % (note))
         return ans  #list of tuples
