@@ -4,14 +4,14 @@ from threading import Thread
 import RPi.GPIO as GPIO
 import smbus
 
-#40Hz - 1kHz
+#Arm that will manipulate one of six strings, commands a Servo and a StepMotor
 class Arm(Thread):
     id = 0
     wait_freq = 0.0008 #~800Hz
     slider_coeff = 6 #distance for one rotation [cm / rot]
     stepmotor_coeff = 200 #impulses for one rotation [imp / rot]
     distances = {0: 1.75, 1: 5.35, 2: 8.7, 3: 11.85, 4: 14.8, 5: 17.6,
-                 6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance [cm]
+                 6: 20.25, 7: 22.75, 8: 25.15, 9: 27.4, 10: 29.5, 11: 31.5} #distance on guitar[cm]
     
     pins = [[27, 4, 17, 8], [9, 22, 10, 7], [6, 11, 5, 12],
             [26, 13, 19, 20], [15, 14, 18, 16], [25, 23, 24, 21]]
@@ -24,7 +24,7 @@ class Arm(Thread):
         self.tic = 0
         self.ticlist = []
         self.bus = smbus.SMBus(1)
-        self.address = 0x12
+        self.address = 0x12 #Arduino slave address
         
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
@@ -32,7 +32,7 @@ class Arm(Thread):
 
     def initGPIO(self):
         #Raspberry parameters
-        self.dir_pin = self.pins[self.id - 1][0]
+        self.dir_pin   = self.pins[self.id - 1][0]
         self.motor_pin = self.pins[self.id - 1][1]
         self.sleep_pin = self.pins[self.id - 1][2]
         self.sensor_pin = self.pins[self.id -1][3]
@@ -43,10 +43,13 @@ class Arm(Thread):
         GPIO.setup(self.sensor_pin, GPIO.IN)
 
     #Utility, for testing use!------------------------------#
+    #Attributes an different ID for every new arm created
     def getId():
         Arm.id+=1
         return Arm.id
 
+    #Allows user to change ID of an Arm. Allows for debugging and
+    #moving/strumming different arms
     def changeID(self, ident):
         self.id = ident
         self.name = "test"
@@ -60,19 +63,23 @@ class Arm(Thread):
         self.strum()
         self.increaseTic()
 
+    #Commands Arduino to activate ServoMotor
     def strum(self, manual = False):
         #PWM to motor, pins in stepmotor_pins
         if self.tic in self.ticlist or manual:
             self.bus.write_byte(self.address, self.id)
-
+    
+    #Infinite loop to test Servos
     def testStrum(self):
         while True:
             self.bus.write_byte(self.address, self.id)
             sleep(Arm.wait_freq)
 
+    #Increase tics to keep track of the time and position on the music sheet
     def increaseTic(self):
         self.tic += 1
 
+    #Used to move the stepmotor, example: self.moveMotor(True, 200), great for testing
     def moveMotor(self, forward, impulses):
         #import pdb; pdb.set_trace()
         if forward:
@@ -90,6 +97,7 @@ class Arm(Thread):
             imp+=1
         GPIO.output(self.sleep_pin, GPIO.LOW)
 
+    #Use the sensor pin to recalibrate all arms
     def synchArm(self):
         self.moveTo(3)
         while not GPIO.input(self.sensor_pin):
@@ -101,6 +109,7 @@ class Arm(Thread):
     #-------------------------------------------------------#
 
     #Run sequence, in order of execution--------------------#
+    #Give the arm all the notes it will play before it's ready to run
     def setNotes(self, notes, tics):
         self.notes = notes
         self.ticlist = tics
@@ -118,6 +127,7 @@ class Arm(Thread):
         else:
             print("No notes available to play!")
 
+    #Move the arm to a set position on the guitar, calculated number of impulses may be inaccurate
     def moveTo(self, destination):
         print("moving from {} to {}".format(self.pos, destination))
         delta = Arm.distances[destination] - Arm.distances[self.pos]
@@ -128,6 +138,7 @@ class Arm(Thread):
         self.pos = destination
     #-------------------------------------------------------#
 
+#Will command all 6 Arms and will be in charge of time synchronisation through tics
 class Supervisor:
     def __init__(self):
         self.arms = []
