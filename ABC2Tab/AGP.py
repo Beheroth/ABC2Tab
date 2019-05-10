@@ -142,10 +142,13 @@ class Arm(Thread):
 class Supervisor:
     def __init__(self):
         self.arms = []
-        self.tic_time = 2 
+        self.tic_time = 2
 
     def addArms(self, arms):
         self.arms += arms
+
+    def quantum(self, tquantum):
+        self.tic_time = tquantum
 
     def runArms(self):
         for arm in self.arms:

@@ -74,6 +74,9 @@ class Converter:
         #print("Left: %s" % self.left)
         #print("Right: %s" % self.right)
 
+    def get_quantum(self):
+        return self.song.tquantum
+
     def get_left(self, string):
         return self.left[string]
 
