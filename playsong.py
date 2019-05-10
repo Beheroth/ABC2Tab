@@ -26,4 +26,5 @@ for i in range(1, 7):
     arms += [a]
 
 sup.addArms(arms)
+sup.quantum(conv.get_quantum())
 sup.runArms()
