@@ -48,22 +48,3 @@ class Chord:
             print(self.notes)
         return smallest
 
-
-    """
-    def getNotes(self):
-        #import pdb; pdb.set_trace()
-        regex = r'([=_^]?[a-zA-Z][,\']?\d?)\/(\d)'
-        notes = []
-        if self.notes[0] == '[':
-            matches = re.finditer(regex, self.note, re.MULTILINE)
-            for matchnum, match in enumerate(matches):
-                notes += [match.group()]
-        else:
-            pattern = re.compile(regex)
-            note = pattern.match(self.note)
-            try:
-                notes = [note.group(0)]
-            except:
-                pass
-        return notes
-    """

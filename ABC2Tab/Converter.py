@@ -24,6 +24,9 @@ class Converter:
         self.song = None
 
     def convert_guitar_to_notes(self):
+        """
+        Creates a map of all the available notes on the guitar and where to play them. The method use 'self.path' to create the map.
+        """
         with open(self.path, "r") as read_file:
             self.guitar = json.load(read_file)
             data = self.guitar
@@ -46,10 +49,15 @@ class Converter:
 
 
     def convert_song(self):
+        """
+        Completes the self.right and self.left attributes.
+        """
         self.read_file()
         song = self.song
         counter = 0
         output = []
+
+        #the "strings" dictionnary is the best representation of a tablature.
         strings = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
         self.left = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
         self.right = {'1':[], '2':[], '3':[], '4':[], '5':[], '6':[]}
@@ -74,22 +82,16 @@ class Converter:
         #print("Left: %s" % self.left)
         #print("Right: %s" % self.right)
 
-    def get_quantum(self):
-        return self.song.tquantum
-
-    def get_left(self, string):
-        return self.left[string]
-
-    def get_right(self, string):
-        return self.right[string]
-
     def read_file(self):
+        """
+        Translates the file into a song object and finds its tquantum.
+        """
         filepath = self.filepath
         abc = open(filepath, 'r')
-        pattern = re.compile(r'(.): (.+)')
         header = {}
         chords = []
 
+        pattern = re.compile(r'(.): (.+)')
         header_context = True
         for line in abc:
             if header_context:
@@ -115,9 +117,13 @@ class Converter:
         return int(time//self.song.tquantum)
 
     def lookup_chord(self, chord):
+        """
+        Lookup where to play every note in the chord
+        :param chord: Chord object containing notes.
+        :return: dictionary where keys are the number of the string and values are the position on the string.
+        """
         result = {}
         #print("--START: LookUp Chord: chord: %s:" % (chord.notes))
-        self.solve_collision(chord)
         for note in chord.notes:
             if note != 'z':
                 positions = self.lookup_note(note)          #list of tuples
@@ -128,12 +134,25 @@ class Converter:
                 try:
                     result[str(positions[i][0])] = positions[i][1] #{'1': 3}
                 except:
-                    print("Erreur, il n'y a pas de position pour jouer %s. i = %s" %(note, i))
+                    print("Error, there is no position to play %s. i = %s" %(note, i))
         #print("--END: LookUp Chord: result: %s \n" % (result))
         return result
 
+    def lookup_note(self, note):
+        """
+        :param note: string
+        :return: list of tuples: positions where you can play that note on the guitar.
+        """
+        ans = None
+        try:
+            ans = self.mapping[note]
+        except:
+            ans = []
+            print("couldn't find %s in the mapping" % (note))
+        return ans
+
     def simplify_left(self, pos):
-        ans = pos.copy()
+        ans = pos.copy()    #to avoid shallow copies
         i = 0
         while (i < len(ans) - 1):
             if (ans[i][0] == ans[i+1][0]):
@@ -150,48 +169,11 @@ class Converter:
             i += 1
         return ans
 
-    def solve_collision(self, chord):
-        #print("--START: Solve Collision")
-        result = {}
-        for note in chord.notes:
-            if note != 'z':
-                positions = self.lookup_note(note)
-                for position in positions:
-                    #print("Note: %s Position: %s" % (note,position[0]))
-                    if(str(position[0]) not in result):
-                        result[str(position[0])] =[]
-                    result[str(position[0])].append(note)
-        #print("Result: %s" % result)
-        #print("unique: string %s, note: %s" % self.find_unique(result))
-        #print("Result: %s" % result)
+    def get_quantum(self):
+        return self.song.tquantum
 
-        #print("--END: Solve Collision")
+    def get_left(self, string):
+        return self.left[string]
 
-    def find_unique(self, positions_set):
-        #TODO
-        key = ''
-        note = ''
-        for key in positions_set.keys():
-            if len(positions_set[key]) == 1:
-                note = positions_set[key][0]    #recupere la note
-                positions_set.pop(key)          #supprime la corde des positions possibles
-                for otherkey in positions_set.keys():
-                    if note in positions_set[otherkey]:
-                        positions_set[otherkey].remove(note)    #supprime la note des autres cordes
-                break
-        return key, note
-
-    def resolve_sudoku(self, positions_set):
-        #TODO
-        result = {}
-
-    def lookup_note(self, note):
-        #TODO
-        #return positions where you can play that note on the neck
-        ans = None
-        try:
-            ans = self.mapping[note]
-        except:
-            ans = []
-            print("couldn't find %s in the mapping" % (note))
-        return ans  #list of tuples
+    def get_right(self, string):
+        return self.right[string]
